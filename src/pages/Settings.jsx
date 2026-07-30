@@ -21,6 +21,14 @@ export default function Settings({ config, onRefresh }) {
   const [scheduleStartDate, setScheduleStartDate] = useState("");
   const [waYapEvery, setWaYapEvery] = useState(4);
   const [otherBucketOrder, setOtherBucketOrder] = useState("");
+  
+  // New scheduling rules states
+  const [mainYapEvery, setMainYapEvery] = useState(2);
+  const [collisionAvoidance, setCollisionAvoidance] = useState(true);
+  const [autoPublishIG, setAutoPublishIG] = useState(true);
+  const [autoPublishFB, setAutoPublishFB] = useState(true);
+  const [autoPublishYT, setAutoPublishYT] = useState(true);
+  
   const [saving, setSaving] = useState(false);
 
   // Gemini API Key state
@@ -47,6 +55,11 @@ export default function Settings({ config, onRefresh }) {
     if (config) {
       setScheduleStartDate(config.scheduleStartDate || "2026-07-18");
       setWaYapEvery(config.waYapEvery || 4);
+      setMainYapEvery(config.mainYapEvery || 2);
+      setCollisionAvoidance(config.collisionAvoidance !== false);
+      setAutoPublishIG(config.autoPublishIG !== false);
+      setAutoPublishFB(config.autoPublishFB !== false);
+      setAutoPublishYT(config.autoPublishYT !== false);
       setOtherBucketOrder(
         config.otherBucketOrder ? config.otherBucketOrder.join(", ") : "Animation, Redacted, Carousel, Poster, Review, Final Line"
       );
@@ -110,11 +123,17 @@ export default function Settings({ config, onRefresh }) {
       await updateConfig({
         scheduleStartDate,
         waYapEvery: parseInt(waYapEvery, 10),
+        mainYapEvery: parseInt(mainYapEvery, 10),
         otherBucketOrder: parsedOrder,
+        collisionAvoidance,
+        autoPublishIG,
+        autoPublishFB,
+        autoPublishYT,
         bucketColors: newColors
       });
       
-      alert("Configuration updated successfully!");
+      await regenerateCalendarInDb();
+      alert("Configuration updated successfully and calendar regenerated!");
       await onRefresh();
     } catch (err) {
       console.error(err);
@@ -234,6 +253,26 @@ export default function Settings({ config, onRefresh }) {
         updateData.waYapEvery = parseInt(parsedConfig.waYapEvery, 10);
         changed = true;
       }
+      if (parsedConfig.mainYapEvery !== undefined && parsedConfig.mainYapEvery !== config.mainYapEvery) {
+        updateData.mainYapEvery = parseInt(parsedConfig.mainYapEvery, 10);
+        changed = true;
+      }
+      if (parsedConfig.collisionAvoidance !== undefined && parsedConfig.collisionAvoidance !== config.collisionAvoidance) {
+        updateData.collisionAvoidance = !!parsedConfig.collisionAvoidance;
+        changed = true;
+      }
+      if (parsedConfig.autoPublishIG !== undefined && parsedConfig.autoPublishIG !== config.autoPublishIG) {
+        updateData.autoPublishIG = !!parsedConfig.autoPublishIG;
+        changed = true;
+      }
+      if (parsedConfig.autoPublishFB !== undefined && parsedConfig.autoPublishFB !== config.autoPublishFB) {
+        updateData.autoPublishFB = !!parsedConfig.autoPublishFB;
+        changed = true;
+      }
+      if (parsedConfig.autoPublishYT !== undefined && parsedConfig.autoPublishYT !== config.autoPublishYT) {
+        updateData.autoPublishYT = !!parsedConfig.autoPublishYT;
+        changed = true;
+      }
       if (parsedConfig.otherBucketOrder && Array.isArray(parsedConfig.otherBucketOrder)) {
         const orderEqual = JSON.stringify(parsedConfig.otherBucketOrder) === JSON.stringify(config.otherBucketOrder);
         if (!orderEqual) {
@@ -324,6 +363,62 @@ export default function Settings({ config, onRefresh }) {
                 onChange={e => setOtherBucketOrder(e.target.value)}
               />
               <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Comma-separated list of bucket names</span>
+            </div>
+
+            <div>
+              <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)" }}>Main Feed YAP Cadence</label>
+              <input
+                type="number"
+                min="1"
+                className="input-field"
+                required
+                value={mainYapEvery}
+                onChange={e => setMainYapEvery(e.target.value)}
+              />
+              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>YAP appears every N-th slot in the main calendar sequence (default: 2 = alternate)</span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.25rem" }}>
+              <input
+                type="checkbox"
+                id="collisionAvoidance"
+                checked={collisionAvoidance}
+                onChange={e => setCollisionAvoidance(e.target.checked)}
+                style={{ width: "16px", height: "16px", cursor: "pointer" }}
+              />
+              <label htmlFor="collisionAvoidance" style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", cursor: "pointer" }}>
+                Enable WhatsApp Collision Avoidance
+              </label>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.25rem", borderTop: "1px solid var(--border-color)", paddingTop: "0.75rem" }}>
+              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)" }}>Automated Publishing Platforms</span>
+              <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.8rem", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={autoPublishIG}
+                    onChange={e => setAutoPublishIG(e.target.checked)}
+                  />
+                  Instagram
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.8rem", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={autoPublishFB}
+                    onChange={e => setAutoPublishFB(e.target.checked)}
+                  />
+                  Facebook
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.8rem", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={autoPublishYT}
+                    onChange={e => setAutoPublishYT(e.target.checked)}
+                  />
+                  YouTube
+                </label>
+              </div>
             </div>
             <button
               type="submit"

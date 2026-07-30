@@ -21,7 +21,12 @@ const CONFIG_DOC_PATH = "config/settings";
 export const DEFAULT_CONFIG = {
   scheduleStartDate: "2026-07-18",
   waYapEvery: 4,
+  mainYapEvery: 2,
   otherBucketOrder: ["Animation", "Redacted", "Carousel", "Poster", "Review", "Final Line"],
+  collisionAvoidance: true,
+  autoPublishIG: true,
+  autoPublishFB: true,
+  autoPublishYT: true,
   bucketColors: {
     Carousel: { bg: "#D6E4FF", text: "#1A4B8C" },
     Poster: { bg: "#E9DDFB", text: "#5B3A9E" },

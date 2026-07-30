@@ -10,7 +10,9 @@ export function generateCalendar(assets, config) {
   const {
     scheduleStartDate = "2026-07-18",
     waYapEvery = 4,
-    otherBucketOrder = ["Animation", "Redacted", "Carousel", "Poster", "Review", "Final Line"]
+    mainYapEvery = 2,
+    otherBucketOrder = ["Animation", "Redacted", "Carousel", "Poster", "Review", "Final Line"],
+    collisionAvoidance = true
   } = config || {};
 
   // 1. Filter Ready assets (ignore retired or other statuses)
@@ -41,14 +43,14 @@ export function generateCalendar(assets, config) {
     }
   }
 
-  // Weave main sequence: alternate YAP, non-YAP
+  // Weave main sequence: YAP appears every mainYapEvery-th slot
   const mainSequence = [];
   const yapQueue = [...yapAssets];
   const nonYapQueue = [...nonYapSequence];
   
-  let toggle = true; // starts with YAP: YAP, other, YAP, other...
+  let mainIndex = 1;
   while (yapQueue.length > 0 || nonYapQueue.length > 0) {
-    if (toggle) {
+    if (mainIndex % mainYapEvery === 1) {
       if (yapQueue.length > 0) {
         mainSequence.push(yapQueue.shift());
       } else if (nonYapQueue.length > 0) {
@@ -61,7 +63,7 @@ export function generateCalendar(assets, config) {
         mainSequence.push(yapQueue.shift());
       }
     }
-    toggle = !toggle;
+    mainIndex++;
   }
 
   // Weave WhatsApp sequence: YAP appears only every waYapEvery-th slot
@@ -157,11 +159,15 @@ export function generateCalendar(assets, config) {
     // Schedule WhatsApp with collision avoidance
     if (waQueue.length > 0) {
       let foundIndex = -1;
-      for (let i = 0; i < waQueue.length; i++) {
-        if (!mainScheduledToday.has(waQueue[i].assetId)) {
-          foundIndex = i;
-          break;
+      if (collisionAvoidance) {
+        for (let i = 0; i < waQueue.length; i++) {
+          if (!mainScheduledToday.has(waQueue[i].assetId)) {
+            foundIndex = i;
+            break;
+          }
         }
+      } else {
+        foundIndex = 0; // Take first item regardless of collision
       }
 
       if (foundIndex !== -1) {

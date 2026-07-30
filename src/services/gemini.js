@@ -88,7 +88,12 @@ export async function parseRulesWithAI(englishPrompt, currentConfig) {
     Here is the schema of the configuration object:
     1. "scheduleStartDate": A string in YYYY-MM-DD format (representing when the schedule starts).
     2. "waYapEvery": A number representing the cadence of YAP postings on WhatsApp (e.g. 3 means every 3rd slot).
-    3. "otherBucketOrder": An array of strings representing the order of content buckets for the non-YAP round-robin distribution. Valid default buckets are "Animation", "Redacted", "Carousel", "Poster", "Review", "Final Line". But the user may specify a custom list or custom buckets. If they introduce a new bucket, keep it! Do not remove standard buckets unless the user implies they want to exclude them.
+    3. "mainYapEvery": A number representing the cadence of YAP postings in the main calendar sequence (e.g. 2 means alternate slots, 3 means every 3rd slot).
+    4. "otherBucketOrder": An array of strings representing the order of content buckets for the non-YAP round-robin distribution. Valid default buckets are "Animation", "Redacted", "Carousel", "Poster", "Review", "Final Line". But the user may specify a custom list or custom buckets. If they introduce a new bucket, keep it! Do not remove standard buckets unless the user implies they want to exclude them.
+    5. "collisionAvoidance": A boolean indicating if WhatsApp collision avoidance is active (true/false).
+    6. "autoPublishIG": A boolean indicating if Instagram auto-publishing is enabled (true/false).
+    7. "autoPublishFB": A boolean indicating if Facebook auto-publishing is enabled (true/false).
+    8. "autoPublishYT": A boolean indicating if YouTube auto-publishing is enabled (true/false).
 
     Here is the CURRENT configuration:
     ${JSON.stringify(currentConfig, null, 2)}
@@ -103,6 +108,11 @@ export async function parseRulesWithAI(englishPrompt, currentConfig) {
     {
       "scheduleStartDate": "2026-08-01",
       "waYapEvery": 5,
+      "mainYapEvery": 3,
+      "collisionAvoidance": false,
+      "autoPublishIG": true,
+      "autoPublishFB": false,
+      "autoPublishYT": true,
       "otherBucketOrder": ["Carousel", "Review", "Animation", "Redacted", "Poster", "Final Line"]
     }
   `;

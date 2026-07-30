@@ -10,6 +10,7 @@ import Warehouse from "./pages/Warehouse";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import LinkInBio from "./pages/LinkInBio";
+import RulesView from "./pages/RulesView";
 
 import { Sparkles, Key, Mail, Lock, AlertCircle } from "lucide-react";
 
@@ -303,6 +304,12 @@ export default function App() {
             <Warehouse
               assets={assets}
               onRefresh={fetchData}
+              config={config}
+            />
+          )}
+
+          {activeTab === "rules" && (
+            <RulesView
               config={config}
             />
           )}

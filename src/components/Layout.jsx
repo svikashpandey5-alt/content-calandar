@@ -7,7 +7,8 @@ import {
   Settings,
   Link2,
   LogOut,
-  Sparkles
+  Sparkles,
+  ClipboardList
 } from "lucide-react";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
@@ -17,6 +18,7 @@ export default function Layout({ children, activeTab, setActiveTab, user }) {
     { id: "dashboard", label: "Today / Dashboard", icon: LayoutDashboard },
     { id: "calendar", label: "Calendar Schedule", icon: Calendar },
     { id: "warehouse", label: "Content Warehouse", icon: Database },
+    { id: "rules", label: "Scheduling Rules", icon: ClipboardList },
     { id: "analytics", label: "Analytics & Insights", icon: BarChart3 },
     { id: "settings", label: "Settings / Admin", icon: Settings },
     { id: "links", label: "Link-in-Bio Setup", icon: Link2 }

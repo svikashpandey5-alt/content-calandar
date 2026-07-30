@@ -103,7 +103,12 @@ export default function Dashboard({ assets, calendarDays, onRefresh, config }) {
         const updateData = { postedOn };
         
         // If it's a simulated auto-post (Phase A), also write back mock analytics
-        if (platformConfig[platform].isAuto) {
+        const isPlatformAuto = platform === "IG" ? (config?.autoPublishIG !== false) :
+                               platform === "FB" ? (config?.autoPublishFB !== false) :
+                               platform === "YT" ? (config?.autoPublishYT !== false) :
+                               platformConfig[platform].isAuto;
+
+        if (isPlatformAuto) {
           const analytics = { ...asset.analytics };
           analytics[platform] = {
             likes: Math.floor(Math.random() * 500) + 50,
@@ -197,6 +202,11 @@ export default function Dashboard({ assets, calendarDays, onRefresh, config }) {
           const pConf = platformConfig[p];
           const IconComponent = pConf.icon;
           
+          const isPlatformAuto = p === "IG" ? (config?.autoPublishIG !== false) :
+                                 p === "FB" ? (config?.autoPublishFB !== false) :
+                                 p === "YT" ? (config?.autoPublishYT !== false) :
+                                 pConf.isAuto;
+
           let isOverdue = false;
           if (item.date && item.date < todayStr) {
             isOverdue = true;
@@ -235,7 +245,7 @@ export default function Dashboard({ assets, calendarDays, onRefresh, config }) {
                   <div>
                     <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>{pConf.name}</h3>
                     <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                      {pConf.isAuto ? "Auto-posting" : "Manual-track only"}
+                      {isPlatformAuto ? "Auto-posting" : "Manual-track only"}
                     </span>
                   </div>
                 </div>
@@ -318,7 +328,7 @@ export default function Dashboard({ assets, calendarDays, onRefresh, config }) {
                     <Sparkles size={14} style={{ color: "var(--accent)" }} /> AI Caption
                   </button>
 
-                  {pConf.isAuto ? (
+                  {isPlatformAuto ? (
                     <button
                       onClick={() => handleMarkPosted(p, item.assetId)}
                       disabled={loading[p]}
