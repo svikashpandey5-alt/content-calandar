@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write for all documents for authenticated team members
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Public collection to track UTM clicks on the Link-in-Bio page
+    match /linkClicks/{document} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+  }
+}

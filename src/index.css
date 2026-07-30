@@ -1,0 +1,383 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-title: 'Outfit', var(--font-sans);
+
+  /* Color Palette - Premium Obsidian Dark Mode */
+  --bg-app: #07090e;
+  --bg-sidebar: #0b0f19;
+  --bg-card: rgba(15, 22, 38, 0.5);
+  --header-bg: rgba(7, 9, 14, 0.75);
+  --header-text: #f8fafc;
+  
+  /* Primary Accent - Warm Gold / Amber Gradient */
+  --accent-gradient: linear-gradient(135deg, #e5a94e 0%, #ca8a04 100%);
+  --accent: #e5a94e;
+  --accent-hover: #f5b041;
+  --accent-light: rgba(229, 169, 78, 0.1);
+  --accent-glow: 0 0 15px rgba(229, 169, 78, 0.25);
+  
+  /* Text states */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Borders and Dividers */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
+  
+  /* Status Colors (Optimized for Dark Theme readability) */
+  --status-draft-bg: rgba(71, 85, 105, 0.2);
+  --status-draft-text: #94a3b8;
+  --status-ready-bg: rgba(22, 101, 52, 0.2);
+  --status-ready-text: #4ade80;
+  --status-prod-bg: rgba(133, 77, 14, 0.25);
+  --status-prod-text: #fef08a;
+  --status-sched-bg: rgba(30, 64, 175, 0.25);
+  --status-sched-text: #60a5fa;
+  --status-pub-bg: rgba(107, 33, 168, 0.25);
+  --status-pub-text: #c084fc;
+  --status-ret-bg: rgba(153, 27, 27, 0.25);
+  --status-ret-text: #fca5a5;
+
+  /* Bucket Colors - Exact specified Hex values */
+  --bucket-carousel-bg: #D6E4FF;
+  --bucket-carousel-text: #1A4B8C;
+  --bucket-poster-bg: #E9DDFB;
+  --bucket-poster-text: #5B3A9E;
+  --bucket-review-bg: #FFF1C2;
+  --bucket-review-text: #8A6D00;
+  --bucket-redacted-bg: #E4E8EC;
+  --bucket-redacted-text: #37474F;
+  --bucket-final-line-bg: #FFE2CC;
+  --bucket-final-line-text: #9A4E14;
+  --bucket-animation-bg: #FBD8E7;
+  --bucket-animation-text: #9A2A5C;
+  --bucket-yap-bg: #D6F1DA;
+  --bucket-yap-text: #1E6B39;
+
+  /* Shadows, Blurs & Border Radii */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  
+  --glass-blur: blur(16px);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image: radial-gradient(circle at 50% 0%, rgba(229, 169, 78, 0.05) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Button & Inputs Reset & Styling */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Container */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Table styles (Premium Glass look) */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.custom-table th {
+  background: rgba(15, 23, 42, 0.4);
+  padding: 1.1rem 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.custom-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  vertical-align: middle;
+  transition: background-color 0.2s ease;
+}
+
+.custom-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: #ffffff;
+}
+
+.custom-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Bucket chips mapping class definitions */
+.bucket-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bucket-Carousel { background-color: var(--bucket-carousel-bg); color: var(--bucket-carousel-text); }
+.bucket-Poster { background-color: var(--bucket-poster-bg); color: var(--bucket-poster-text); }
+.bucket-Review { background-color: var(--bucket-review-bg); color: var(--bucket-review-text); }
+.bucket-Redacted { background-color: var(--bucket-redacted-bg); color: var(--bucket-redacted-text); }
+.bucket-Final-Line { background-color: var(--bucket-final-line-bg); color: var(--bucket-final-line-text); }
+.bucket-Animation { background-color: var(--bucket-animation-bg); color: var(--bucket-animation-text); }
+.bucket-YAP { background-color: var(--bucket-yap-bg); color: var(--bucket-yap-text); }
+
+/* Status pill mapping class definitions */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.status-Draft { background-color: var(--status-draft-bg); color: var(--status-draft-text); }
+.status-Ready { background-color: var(--status-ready-bg); color: var(--status-ready-text); }
+.status-In-Production { background-color: var(--status-prod-bg); color: var(--status-prod-text); }
+.status-Scheduled { background-color: var(--status-sched-bg); color: var(--status-sched-text); }
+.status-Published { background-color: var(--status-pub-bg); color: var(--status-pub-text); }
+.status-Retired { background-color: var(--status-ret-bg); color: var(--status-ret-text); }
+
+/* Common UI Buttons (Glowing & Glass) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.btn-primary {
+  background: var(--accent-gradient);
+  color: #07090e;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(229, 169, 78, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(229, 169, 78, 0.4), var(--accent-glow);
+  filter: brightness(1.05);
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Input design */
+.input-field {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background-color: rgba(15, 22, 38, 0.8);
+  border: 1px solid var(--border-color);
+  color: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+  background-color: rgba(15, 22, 38, 0.95);
+}
+
+.input-field::placeholder {
+  color: #475569;
+}
+
+.input-field:disabled {
+  background-color: rgba(15, 22, 38, 0.4);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Card layout (Frosted Glassmorphism) */
+.card {
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-lg), 0 0 25px rgba(255, 255, 255, 0.02);
+  transform: translateY(-2px);
+}
+
+/* Keyframes animations */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Custom CSS animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card, .table-container, form {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Sidebar Nav Item Styling */
+.sidebar-item {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-left: 4px solid transparent;
+  padding-left: 1rem;
+}
+
+.sidebar-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.sidebar-item:hover svg {
+  color: #ffffff !important;
+}
+
+.sidebar-item.active {
+  color: var(--text-primary);
+  background-color: var(--accent-light);
+  border-left: 4px solid var(--accent);
+  padding-left: calc(1rem - 4px);
+}
+
+.sidebar-item.active svg {
+  color: var(--accent) !important;
+}
