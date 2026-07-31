@@ -32,10 +32,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // Secrets collection - strictly deny all client-side read/write.
-    // Cloud Functions Admin SDK bypasses these rules.
+    // Secrets collection - write-only from client (blocked from reads)
     match /secrets/{document} {
-      allow read, write: if false;
+      allow create, update: if request.auth != null;
+      allow read: if false;
     }
   }
 }

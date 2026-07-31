@@ -11,6 +11,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import LinkInBio from "./pages/LinkInBio";
 import RulesView from "./pages/RulesView";
+import OAuthCallback from "./pages/OAuthCallback";
 
 import { Sparkles, Key, Mail, Lock, AlertCircle } from "lucide-react";
 
@@ -19,6 +20,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const isOAuthRedirect = window.location.pathname === "/oauth/callback";
 
   // Database states
   const [config, setConfig] = useState(null);
@@ -282,54 +284,68 @@ export default function App() {
         </div>
       ) : (
         <>
-          {activeTab === "dashboard" && (
-            <Dashboard
-              assets={assets}
-              calendarDays={calendarDays}
-              onRefresh={fetchData}
-              config={config}
+          {isOAuthRedirect ? (
+            <OAuthCallback
+              onComplete={() => {
+                // Clear authorization code from the browser URL address bar
+                window.history.replaceState({}, document.title, "/");
+                // Refresh local database settings states
+                fetchData();
+                setActiveTab("settings");
+              }}
             />
-          )}
+          ) : (
+            <>
+              {activeTab === "dashboard" && (
+                <Dashboard
+                  assets={assets}
+                  calendarDays={calendarDays}
+                  onRefresh={fetchData}
+                  config={config}
+                />
+              )}
 
-          {activeTab === "calendar" && (
-            <CalendarView
-              assets={assets}
-              calendarDays={calendarDays}
-              onRefresh={fetchData}
-              config={config}
-            />
-          )}
+              {activeTab === "calendar" && (
+                <CalendarView
+                  assets={assets}
+                  calendarDays={calendarDays}
+                  onRefresh={fetchData}
+                  config={config}
+                />
+              )}
 
-          {activeTab === "warehouse" && (
-            <Warehouse
-              assets={assets}
-              onRefresh={fetchData}
-              config={config}
-            />
-          )}
+              {activeTab === "warehouse" && (
+                <Warehouse
+                  assets={assets}
+                  onRefresh={fetchData}
+                  config={config}
+                />
+              )}
 
-          {activeTab === "rules" && (
-            <RulesView
-              config={config}
-            />
-          )}
+              {activeTab === "rules" && (
+                <RulesView
+                  config={config}
+                />
+              )}
 
-          {activeTab === "analytics" && (
-            <Analytics
-              assets={assets}
-              calendarDays={calendarDays}
-            />
-          )}
+              {activeTab === "analytics" && (
+                <Analytics
+                  assets={assets}
+                  calendarDays={calendarDays}
+                />
+              )}
 
-          {activeTab === "settings" && (
-            <Settings
-              config={config}
-              onRefresh={fetchData}
-            />
-          )}
+              {activeTab === "settings" && (
+                <Settings
+                  config={config}
+                  onRefresh={fetchData}
+                />
+              )}
 
-          {activeTab === "links" && (
-            <LinkInBio />
+              {activeTab === "links" && (
+                <LinkInBio />
+              )}
+            </>
           )}
         </>
       )}

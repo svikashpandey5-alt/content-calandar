@@ -323,7 +323,7 @@ export default function Settings({ config, onRefresh }) {
   };
 
   const handleStartYouTubeAuth = () => {
-    const clientId = "163499969103-osn60sf2d3ap3dm4br2ckd0rg34ki15t.apps.googleusercontent.com";
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const redirectUri = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
       ? "http://localhost:3000/oauth/callback"
       : "https://content-calendar-1adf3.web.app/oauth/callback";
@@ -344,7 +344,7 @@ export default function Settings({ config, onRefresh }) {
   };
 
   const handleCopyAuthLink = () => {
-    const clientId = "163499969103-osn60sf2d3ap3dm4br2ckd0rg34ki15t.apps.googleusercontent.com";
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const redirectUri = "https://content-calendar-1adf3.web.app/oauth/callback";
     const scope = "https://www.googleapis.com/auth/youtube.upload";
     const responseType = "code";
