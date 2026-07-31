@@ -1,10 +1,10 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
-const { google } = require("googleapis");
 
 admin.initializeApp();
 
 exports.oauthCallback = onRequest({ cors: true }, async (req, res) => {
+  const { google } = require("googleapis");
   const code = req.query.code;
   if (!code) {
     res.status(400).send("Authorization code is missing.");
