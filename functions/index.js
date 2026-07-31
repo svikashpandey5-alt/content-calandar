@@ -1,4 +1,5 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
@@ -116,3 +117,133 @@ exports.oauthCallback = onRequest({ cors: true }, async (req, res) => {
     res.status(500).send(`Failed to exchange authorization code: ${error.message}`);
   }
 });
+
+exports.autoPostToYouTube = onDocumentUpdated("assets/{assetId}", async (event) => {
+  const fs = require("fs");
+  const path = require("path");
+  const os = require("os");
+  const { Readable } = require("stream");
+  const { pipeline } = require("stream/promises");
+
+  const change = event.data;
+  if (!change) return;
+
+  const beforeData = change.before.data();
+  const afterData = change.after.data();
+
+  // Trigger conditions:
+  // 1. Status changes to "Published"
+  // 2. Format is "Video"
+  // 3. Has not been posted to YT yet
+  if (
+    afterData.status === "Published" &&
+    beforeData.status !== "Published" &&
+    afterData.format === "Video" &&
+    (!afterData.postedOn || !afterData.postedOn.YT)
+  ) {
+    console.log(`Starting YouTube auto-post for asset: ${event.params.assetId}`);
+
+    const db = admin.firestore();
+
+    // 1. Retrieve refresh token from secrets/youtube
+    const secretSnap = await db.collection("secrets").doc("youtube").get();
+    if (!secretSnap.exists) {
+      console.error("YouTube secrets not configured. Aborting auto-post.");
+      return;
+    }
+    const secrets = secretSnap.data();
+    if (!secrets.refreshToken) {
+      console.error("Missing refresh token in secrets/youtube. Aborting auto-post.");
+      return;
+    }
+
+    const assetLink = afterData.assetLink;
+    if (!assetLink) {
+      console.error("Asset link is missing in asset document. Aborting auto-post.");
+      return;
+    }
+
+    // 2. Setup temp path
+    const tempLocalPath = path.join(os.tmpdir(), `${event.params.assetId}.mp4`);
+
+    try {
+      // 3. Download the video from assetLink
+      console.log(`Downloading video from: ${assetLink}`);
+      const response = await fetch(assetLink);
+      if (!response.ok) {
+        throw new Error(`Failed to download video: ${response.statusText}`);
+      }
+      const fileStream = fs.createWriteStream(tempLocalPath);
+      await pipeline(Readable.fromWeb(response.body), fileStream);
+      console.log(`Video downloaded to temporary path: ${tempLocalPath}`);
+
+      // 4. Auth with Google OAuth client
+      const { google } = require("googleapis");
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET
+      );
+
+      oauth2Client.setCredentials({
+        refresh_token: secrets.refreshToken
+      });
+
+      // 5. Upload to YouTube v3
+      const youtube = google.youtube({ version: "v3", auth: oauth2Client });
+      console.log("Uploading video to YouTube...");
+      const res = await youtube.videos.insert({
+        part: "snippet,status",
+        requestBody: {
+          snippet: {
+            title: afterData.name || `Teaser: ${event.params.assetId}`,
+            description: `${afterData.name || ""}\n\nPreorder The Silent Veto: https://amazon.com/dp/sample\n\nUploaded automatically by Content Calendar`,
+            tags: ["Teaser", "The Silent Veto", "auto-upload"]
+          },
+          status: {
+            privacyStatus: "public",
+            selfDeclaredMadeForKids: false
+          }
+        },
+        media: {
+          body: fs.createReadStream(tempLocalPath)
+        }
+      });
+
+      const videoId = res.data.id;
+      const videoUrl = `https://youtube.com/watch?v=${videoId}`;
+      console.log(`YouTube upload successful. Video ID: ${videoId}`);
+
+      // 6. Update Firestore state
+      const updateData = {
+        "postedOn.YT": true,
+        "scheduledDate.YT": new Date().toISOString(),
+        "analytics.YT": {
+          videoId: videoId,
+          videoUrl: videoUrl,
+          postedAt: new Date().toISOString(),
+          status: "Posted"
+        }
+      };
+
+      await db.collection("assets").doc(event.params.assetId).update(updateData);
+      console.log("Firestore asset document updated successfully.");
+
+    } catch (err) {
+      console.error("YouTube auto-upload failed:", err);
+      // Update asset document with error status so the user is notified
+      await db.collection("assets").doc(event.params.assetId).update({
+        "analytics.YT": {
+          status: `Failed: ${err.message}`,
+          failedAt: new Date().toISOString()
+        }
+      });
+    } finally {
+      // Clean up the temporary file
+      if (fs.existsSync(tempLocalPath)) {
+        fs.unlinkSync(tempLocalPath);
+        console.log("Cleaned up temporary video file.");
+      }
+    }
+  }
+});
+
