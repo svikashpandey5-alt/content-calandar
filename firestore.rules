@@ -1,8 +1,28 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write for all documents for authenticated team members
-    match /{document=**} {
+    // Assets collection
+    match /assets/{document} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Config collection
+    match /config/{document} {
+      allow read, write: if request.auth != null;
+    }
+
+    // CalendarDays collection
+    match /calendarDays/{document} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Counters collection
+    match /counters/{document} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Users collection
+    match /users/{document} {
       allow read, write: if request.auth != null;
     }
 
@@ -10,6 +30,12 @@ service cloud.firestore {
     match /linkClicks/{document} {
       allow create: if true;
       allow read, write: if request.auth != null;
+    }
+
+    // Secrets collection - strictly deny all client-side read/write.
+    // Cloud Functions Admin SDK bypasses these rules.
+    match /secrets/{document} {
+      allow read, write: if false;
     }
   }
 }

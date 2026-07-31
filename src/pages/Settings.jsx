@@ -17,6 +17,13 @@ import { parseRulesWithAI } from "../services/gemini";
 import { db } from "../firebase";
 import { collection, getDocs, doc, writeBatch, setDoc } from "firebase/firestore";
 
+const Youtube = (props) => (
+  <svg width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
+    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
+  </svg>
+);
+
 export default function Settings({ config, onRefresh }) {
   const [scheduleStartDate, setScheduleStartDate] = useState("");
   const [waYapEvery, setWaYapEvery] = useState(4);
@@ -315,6 +322,47 @@ export default function Settings({ config, onRefresh }) {
     }
   };
 
+  const handleStartYouTubeAuth = () => {
+    const clientId = "163499969103-osn60sf2d3ap3dm4br2ckd0rg34ki15t.apps.googleusercontent.com";
+    const redirectUri = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://localhost:3000/oauth/callback"
+      : "https://content-calendar-1adf3.web.app/oauth/callback";
+    const scope = "https://www.googleapis.com/auth/youtube.upload";
+    const responseType = "code";
+    const accessType = "offline";
+    const prompt = "consent";
+
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${encodeURIComponent(clientId)}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent(scope)}&` +
+      `response_type=${encodeURIComponent(responseType)}&` +
+      `access_type=${encodeURIComponent(accessType)}&` +
+      `prompt=${encodeURIComponent(prompt)}`;
+
+    window.location.href = authUrl;
+  };
+
+  const handleCopyAuthLink = () => {
+    const clientId = "163499969103-osn60sf2d3ap3dm4br2ckd0rg34ki15t.apps.googleusercontent.com";
+    const redirectUri = "https://content-calendar-1adf3.web.app/oauth/callback";
+    const scope = "https://www.googleapis.com/auth/youtube.upload";
+    const responseType = "code";
+    const accessType = "offline";
+    const prompt = "consent";
+
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${encodeURIComponent(clientId)}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent(scope)}&` +
+      `response_type=${encodeURIComponent(responseType)}&` +
+      `access_type=${encodeURIComponent(accessType)}&` +
+      `prompt=${encodeURIComponent(prompt)}`;
+
+    navigator.clipboard.writeText(authUrl);
+    alert("YouTube authorization link copied to clipboard! You can send this link to the YouTube channel owner.");
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
       <div>
@@ -501,6 +549,57 @@ export default function Settings({ config, onRefresh }) {
               )}
             </button>
           </form>
+        </div>
+
+        {/* YouTube OAuth Setup */}
+        <div className="card" style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <h3 style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.15rem", fontWeight: 600 }}>
+            <Youtube size={20} style={{ color: "#FF0000" }} /> YouTube Channel Connection
+          </h3>
+          <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+            Authorize the Google account owning the target YouTube Channel to enable automated video posting.
+          </div>
+          
+          {config?.youtubeLinked ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", padding: "0.75rem", backgroundColor: "rgba(74,222,128,0.1)", borderRadius: "8px", border: "1px solid rgba(74,222,128,0.2)", fontSize: "0.85rem", color: "#4ade80" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontWeight: 600 }}>
+                <span>✓ Connection Active</span>
+              </div>
+              {config.youtubeLinkedAt && (
+                <span style={{ fontSize: "0.75rem", color: "rgba(74,222,128,0.7)" }}>
+                  Authorized on: {new Date(config.youtubeLinkedAt).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", padding: "0.75rem", backgroundColor: "rgba(229,169,78,0.1)", borderRadius: "8px", border: "1px solid rgba(229,169,78,0.2)", fontSize: "0.85rem", color: "var(--accent)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontWeight: 600 }}>
+                <span>⚠ Not Connected</span>
+              </div>
+              <span style={{ fontSize: "0.75rem", color: "rgba(229,169,78,0.7)" }}>
+                OAuth token is missing. Scheduled uploads will be skipped.
+              </span>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "auto" }}>
+            <button
+              onClick={handleStartYouTubeAuth}
+              className="btn btn-primary"
+              style={{ flex: 1, backgroundColor: "#FF0000", color: "#ffffff", borderColor: "#FF0000", fontSize: "0.8rem", padding: "0.5rem" }}
+            >
+              <Youtube size={14} />
+              <span>Link Account</span>
+            </button>
+            <button
+              onClick={handleCopyAuthLink}
+              className="btn btn-secondary"
+              style={{ flex: 1, fontSize: "0.8rem", padding: "0.5rem" }}
+              title="Copy OAuth consent link to send to channel owner"
+            >
+              <span>Copy Link</span>
+            </button>
+          </div>
         </div>
       </div>
 
