@@ -146,18 +146,41 @@ export function generateCalendar(assets, config) {
     const mainScheduledToday = new Set();
 
     mainPlatforms.forEach(p => {
-      const q = platformQueues[p];
-      if (q.length > 0) {
-        const asset = q[0];
-        daySchedule[p] = asset.assetId;
-        mainScheduledToday.add(asset.assetId);
+      // 1. Check for manual scheduledDate override for this platform on this dateStr
+      const overrideAsset = assets.find(
+        a => a.status === "Ready" && a.scheduledDate?.[p] === dateStr
+      );
+
+      if (overrideAsset) {
+        daySchedule[p] = overrideAsset.assetId;
+        mainScheduledToday.add(overrideAsset.assetId);
+        // Filter out this asset from the queue so it is not scheduled again
+        platformQueues[p] = platformQueues[p].filter(a => a.assetId !== overrideAsset.assetId);
       } else {
-        daySchedule[p] = "ALL CONTENT USED";
+        const q = platformQueues[p];
+        if (q.length > 0) {
+          const asset = q[0];
+          daySchedule[p] = asset.assetId;
+          mainScheduledToday.add(asset.assetId);
+          // Mark that this queue should be shifted/advanced today
+          q.shouldShift = true;
+        } else {
+          daySchedule[p] = "ALL CONTENT USED";
+        }
       }
     });
 
     // Schedule WhatsApp with collision avoidance
-    if (waQueue.length > 0) {
+    // Check for WhatsApp override first
+    const waOverride = assets.find(
+      a => a.status === "Ready" && a.scheduledDate?.WhatsApp === dateStr
+    );
+
+    if (waOverride) {
+      daySchedule.WhatsApp = waOverride.assetId;
+      // Remove from waQueue so it isn't scheduled again
+      waQueue = waQueue.filter(a => a.assetId !== waOverride.assetId);
+    } else if (waQueue.length > 0) {
       let foundIndex = -1;
       if (collisionAvoidance) {
         for (let i = 0; i < waQueue.length; i++) {
@@ -182,11 +205,12 @@ export function generateCalendar(assets, config) {
       daySchedule.WhatsApp = "ALL CONTENT USED";
     }
 
-    // Advance main queues
+    // Advance main queues if a normal queue item was consumed
     mainPlatforms.forEach(p => {
       const q = platformQueues[p];
-      if (q.length > 0) {
+      if (q.length > 0 && q.shouldShift) {
         q.shift();
+        delete q.shouldShift;
       }
     });
 

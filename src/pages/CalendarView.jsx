@@ -12,6 +12,7 @@ import { updateAsset, regenerateCalendarInDb } from "../services/db";
 export default function CalendarView({ assets, calendarDays, onRefresh, config }) {
   const [selectedCell, setSelectedCell] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [dragOverCell, setDragOverCell] = useState(null);
 
   // Today's date (YYYY-MM-DD)
   const today = new Date();
@@ -258,16 +259,92 @@ export default function CalendarView({ assets, calendarDays, onRefresh, config }
                         };
                       }
 
+                      const isDragOver = dragOverCell === `${row.date}-${p}`;
+
                       return (
-                        <td key={p} style={{ padding: "0.5rem" }}>
+                        <td
+                          key={p}
+                          style={{
+                            padding: "0.5rem",
+                            transition: "all 0.15s ease",
+                            backgroundColor: isDragOver ? "rgba(99, 102, 241, 0.1)" : "transparent",
+                            boxShadow: isDragOver ? "inset 0 0 0 2px var(--accent)" : "none",
+                            borderRadius: "8px"
+                          }}
+                          onDragOver={(e) => {
+                            if (!isExhausted) {
+                              e.preventDefault();
+                            }
+                          }}
+                          onDragEnter={() => {
+                            if (!isExhausted) {
+                              setDragOverCell(`${row.date}-${p}`);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            setDragOverCell(null);
+                          }}
+                          onDrop={async (e) => {
+                            if (isExhausted) return;
+                            e.preventDefault();
+                            setDragOverCell(null);
+                            try {
+                              const dragData = JSON.parse(e.dataTransfer.getData("text/plain"));
+                              const { assetId: draggedAssetId, sourcePlatform, sourceDate } = dragData;
+
+                              // If dropped on the same cell, do nothing
+                              if (draggedAssetId === assetId && sourcePlatform === p && sourceDate === row.date) {
+                                return;
+                              }
+
+                              setUpdating(true);
+
+                              const draggedAsset = getCellAsset(draggedAssetId);
+                              if (!draggedAsset) return;
+
+                              // 1. Set manual override for target date
+                              const updatedScheduledDate = {
+                                ...(draggedAsset.scheduledDate || {}),
+                                [p]: row.date
+                              };
+                              await updateAsset(draggedAssetId, { scheduledDate: updatedScheduledDate });
+
+                              // 2. Swap logic if the target cell already has a manual override
+                              if (asset && asset.scheduledDate?.[p] === row.date) {
+                                const targetScheduledDate = {
+                                  ...(asset.scheduledDate || {}),
+                                  [sourcePlatform]: sourceDate
+                                };
+                                await updateAsset(asset.assetId, { scheduledDate: targetScheduledDate });
+                              }
+
+                              // 3. Re-run scheduling sequence and refresh UI
+                              await regenerateCalendarInDb();
+                              await onRefresh();
+                            } catch (err) {
+                              console.error("Drop rescheduling error:", err);
+                              alert("Failed to reschedule asset.");
+                            } finally {
+                              setUpdating(false);
+                            }
+                          }}
+                        >
                           {isExhausted ? (
                             <div style={cellStyle}>ALL USED</div>
                           ) : asset ? (
                             <div
+                              draggable={true}
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData("text/plain", JSON.stringify({ assetId, sourcePlatform: p, sourceDate: row.date }));
+                                e.currentTarget.style.opacity = "0.4";
+                              }}
+                              onDragEnd={(e) => {
+                                e.currentTarget.style.opacity = "1";
+                              }}
                               onClick={() => handleCellClick(row, p)}
                               className="bucket-chip"
                               style={cellStyle}
-                              title={`Click to manage: ${asset.name}`}
+                              title={`Drag to reschedule, or click to manage: ${asset.name}`}
                             >
                               <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", gap: "0.25rem", marginBottom: "0.15rem" }}>
                                 <span style={{ fontSize: "0.75rem", fontWeight: 700 }}>{assetId}</span>
