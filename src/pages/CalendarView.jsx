@@ -272,20 +272,15 @@ export default function CalendarView({ assets, calendarDays, onRefresh, config }
                             borderRadius: "8px"
                           }}
                           onDragOver={(e) => {
-                            if (!isExhausted) {
-                              e.preventDefault();
-                            }
+                            e.preventDefault();
                           }}
                           onDragEnter={() => {
-                            if (!isExhausted) {
-                              setDragOverCell(`${row.date}-${p}`);
-                            }
+                            setDragOverCell(`${row.date}-${p}`);
                           }}
                           onDragLeave={() => {
                             setDragOverCell(null);
                           }}
                           onDrop={async (e) => {
-                            if (isExhausted) return;
                             e.preventDefault();
                             setDragOverCell(null);
                             try {
