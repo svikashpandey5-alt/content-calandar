@@ -381,13 +381,30 @@ export default function Settings({ config, onRefresh }) {
           <form onSubmit={handleSaveConfig} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div>
               <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)" }}>Schedule Start Date</label>
-              <input
-                type="date"
-                className="input-field"
-                required
-                value={scheduleStartDate}
-                onChange={e => setScheduleStartDate(e.target.value)}
-              />
+              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
+                <input
+                  type="date"
+                  className="input-field"
+                  required
+                  value={scheduleStartDate}
+                  onChange={e => setScheduleStartDate(e.target.value)}
+                  style={{ flex: 1, marginTop: 0 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, "0");
+                    const dd = String(today.getDate()).padStart(2, "0");
+                    setScheduleStartDate(`${yyyy}-${mm}-${dd}`);
+                  }}
+                  className="btn btn-secondary"
+                  style={{ whiteSpace: "nowrap", padding: "0 1rem", border: "1px solid var(--border-color)", backgroundColor: "rgba(255,255,255,0.04)" }}
+                >
+                  Set to Today
+                </button>
+              </div>
             </div>
             <div>
               <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)" }}>WhatsApp YAP Cadence</label>
